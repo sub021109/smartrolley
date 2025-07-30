@@ -1,4 +1,4 @@
-# vision_utils.py - 모델 로딩, 이미지 처리, 객체/바코드 인식 등 핵심 비전 로직
+# vision_utils.py
 
 import torch
 import torchvision.models as models
@@ -9,6 +9,7 @@ import numpy as np
 from scipy.spatial.distance import cosine
 from pyzbar.pyzbar import decode
 import config
+from ultralytics import YOLO  # YOLOv8 임포트
 
 # --- 모듈 내 전역 변수로 모델과 전처리기 선언 ---
 device = None
@@ -29,11 +30,13 @@ def initialize_vision():
     print(f"사용 디바이스: {device}")
     
     try:
-        detection_model = torch.hub.load('ultralytics/yolov5', 'custom', path=config.YOLO_MODEL_PATH)
+        # YOLOv5 로딩 방식에서 YOLOv8 로딩 방식으로 변경
+        detection_model = YOLO(config.YOLO_MODEL_PATH)
+        
         feature_extractor = models.resnet18(weights=None)
         feature_extractor.load_state_dict(torch.load(config.RESNET_MODEL_PATH))
         feature_extractor = torch.nn.Sequential(*list(feature_extractor.children())[:-1])
-        detection_model.to(device).eval()
+        # detection_model은 YOLO 클래스가 내부적으로 디바이스를 관리하므로 .to(device) 불필요
         feature_extractor.to(device).eval()
         print("모든 모델 로딩 완료.\n")
     except Exception as e:
@@ -46,6 +49,7 @@ def initialize_vision():
     ])
     clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
 
+# 나머지 함수들은 변경할 필요가 없으므로 그대로 둡니다.
 def _decode_and_append(image, found_barcodes, found_data):
     """pyzbar 디코딩을 수행하고 결과를 리스트에 추가하는 내부 함수"""
     for barcode in decode(image):
@@ -59,7 +63,7 @@ def optimized_decode_barcodes(frame):
     found_barcodes, found_data = [], set()
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     _decode_and_append(gray, found_barcodes, found_data)
-    if clahe:  # clahe가 초기화되었는지 확인
+    if clahe:
         enhanced_gray = clahe.apply(gray)
         _decode_and_append(enhanced_gray, found_barcodes, found_data)
     blurred = cv2.GaussianBlur(gray, (5, 5), 0)

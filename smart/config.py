@@ -1,4 +1,4 @@
-# config.py - 모든 설정 값을 모아둔 파일입니다.
+# config.py
 
 import os
 
@@ -7,7 +7,8 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_FILE = os.path.join(BASE_DIR, "object_database.pkl")
 IMAGE_DIR = os.path.join(BASE_DIR, "registered_images")
 LOG_FILE = os.path.join(BASE_DIR, "inventory_log.csv")
-YOLO_MODEL_PATH = os.path.join(BASE_DIR, 'yolov5s.pt')
+# yolov5s.pt -> yolov8n.pt 로 변경 (YOLOv8은 경로 대신 모델 이름을 사용)
+YOLO_MODEL_PATH = 'yolov8n.pt'
 RESNET_MODEL_PATH = os.path.join(BASE_DIR, 'resnet18-f37072fd.pth')
 
 # --- 인식 관련 임계값 ---
